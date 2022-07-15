@@ -37,16 +37,16 @@ public class PlayerController : MonoBehaviour
             {
                 // Ekrana basılı tutulduğunda
                 _isMove = true; // Running aktif olur
-                anim.SetBool("Running", true);
+                //anim.SetBool("Running", true);
             }
             if (Input.GetMouseButtonUp(0))
             {
                 // Ekrana dokunma bırakıldığında
                 _isMove = false; // Running pasif olur 
-                anim.SetBool("Running", false);
+                //anim.SetBool("Running", false);
             }
         }
-                
+        CharacterAnim();
     }
     private void FixedUpdate()
     {
@@ -67,7 +67,25 @@ public class PlayerController : MonoBehaviour
                 //eger gameStart true, _isFly true ve isFinish true ise (oyun baslamıs) uc
             }
         }
-        
+    }
+    void CharacterAnim()
+    {
+        if (_isMove)
+        {
+            anim.SetBool("Running", true);
+        }
+        else
+        {
+            anim.SetBool("Running", false);
+        }
+        if (_isFly)
+        {
+            anim.SetBool("Flying", true);
+        }
+        else
+        {
+            anim.SetBool("Flying", false);
+        }
     }
     public void TapToStart()
     {
@@ -85,6 +103,7 @@ public class PlayerController : MonoBehaviour
         transform.position = Vector3.Lerp(transform.position, new Vector3(transform.position.x, 3f, transform.position.z), 1f*Time.fixedDeltaTime);
         transform.Translate(0, 0, _flySpeed * Time.fixedDeltaTime); // Karakter speed degeri hizinda ileri hareket eder
         _flyTime -= Time.deltaTime;
+        
         if (_flyTime <= 0)
         {
             rb.useGravity = true;
@@ -99,8 +118,7 @@ public class PlayerController : MonoBehaviour
             _isGround = false;
             _isFly = true;
             _isMove = false;
-            rb.useGravity = false;
-            anim.SetBool("Flying", true);
+            rb.useGravity = false;           
         }
     }
     private void OnCollisionEnter(Collision collision)
@@ -111,8 +129,7 @@ public class PlayerController : MonoBehaviour
             GameManager.gamemanagerInstance.isFinish = false;
             _isGround = true;
             _isFly = false;
-            _flyTime = 3f;
-            anim.SetBool("Flying", false);
+            //_flyTime = 3f;
         }
     }
 }
