@@ -45,8 +45,8 @@ public class GameManager : MonoBehaviour
     public void Finish()
     {
         isFinish = true;  
-        //UIController.uicontrollerInstance.WinPanelActive();    // LosePanel Açıl 
-        //UIController.uicontrollerInstance.WinPanelText();        // WinPanel Açıl
+        UIController.uicontrollerInstance.WinPanelActive();    // LosePanel Açıl 
+        UIController.uicontrollerInstance.WinPanelText();        // WinPanel Açıl
     }
     public void RetyLevel()
     {

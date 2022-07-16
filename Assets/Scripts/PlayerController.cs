@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
@@ -16,6 +17,12 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private bool _isGround;   // Zıplama aktif mi
     [SerializeField] private bool _isFly;   // Zıplama aktif mi
     [SerializeField] private float _flyTime;  // Kalkan süresi
+    [Space]
+    [Header("Collected Controller")]
+    [SerializeField] Transform wings;
+    public List<Transform> CollectedLetfWing = new List<Transform>();   // Toplanan objelerin listesi
+    public List<Transform> CollectedRigthWing = new List<Transform>();   // Toplanan objelerin listesi
+    [SerializeField] private float diffBetweenItems;    // Toplana objelerin yana kayma h?z? ve objeler aras? mesafesi
     void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -87,6 +94,60 @@ public class PlayerController : MonoBehaviour
             anim.SetBool("Flying", false);
         }
     }
+    void WingsOpen()
+    {
+        Debug.Log("wingOpen");
+        if (CollectedLetfWing.Count > 1)
+        {
+            for (int i = 0; i < CollectedLetfWing.Count; i++)
+            {
+                var firstItem = CollectedLetfWing.ElementAt(i);
+                // Stack (Toplama) iþlemi sonrasý toplanan objelerin  sýralý þekilde gidiþini ve üstüne eklemesini ayarlar
+                firstItem.position = new Vector3(Mathf.Lerp(firstItem.position.x, firstItem.position.x - (i * diffBetweenItems), 1f),
+                     firstItem.position.y,
+                    firstItem.position.z);
+
+            }
+        }
+        if (CollectedRigthWing.Count > 1)
+        {
+            for (int i = 0; i < CollectedRigthWing.Count; i++)
+            {
+                var firstItem = CollectedRigthWing.ElementAt(i);
+                // Stack (Toplama) iþlemi sonrasý toplanan objelerin  sýralý þekilde gidiþini ve üstüne eklemesini ayarlar
+                firstItem.position = new Vector3(Mathf.Lerp(firstItem.position.x, firstItem.position.x + (i * diffBetweenItems), 1f),
+                     firstItem.position.y,
+                    firstItem.position.z);
+            }
+        }
+    }
+    public void WingsClose()
+    {
+        Debug.Log("wingClose");
+        if (CollectedLetfWing.Count > 1)
+        {
+            for (int i = 0; i < CollectedLetfWing.Count; i++)
+            {
+                var firstItem = CollectedLetfWing.ElementAt(i);
+                // Stack (Toplama) iþlemi sonrasý toplanan objelerin  sýralý þekilde gidiþini ve üstüne eklemesini ayarlar
+                firstItem.position = new Vector3(Mathf.Lerp(firstItem.position.x, firstItem.position.x + (i * diffBetweenItems), 1f),
+                     firstItem.position.y,
+                    firstItem.position.z);
+
+            }
+        }
+        if (CollectedRigthWing.Count > 1)
+        {
+            for (int i = 0; i < CollectedRigthWing.Count; i++)
+            {
+                var firstItem = CollectedRigthWing.ElementAt(i);
+                // Stack (Toplama) iþlemi sonrasý toplanan objelerin  sýralý þekilde gidiþini ve üstüne eklemesini ayarlar
+                firstItem.position = new Vector3(Mathf.Lerp(firstItem.position.x, firstItem.position.x - (i * diffBetweenItems), 1f),
+                     firstItem.position.y,
+                    firstItem.position.z);
+            }
+        }
+    }
     public void TapToStart()
     {
         // oyunu baslatmak icin ekrana tıklanır     
@@ -102,12 +163,20 @@ public class PlayerController : MonoBehaviour
         //flyEffect.Play(); // Ucarken Flying efekti calisir  
         transform.position = Vector3.Lerp(transform.position, new Vector3(transform.position.x, 3f, transform.position.z), 1f*Time.fixedDeltaTime);
         transform.Translate(0, 0, _flySpeed * Time.fixedDeltaTime); // Karakter speed degeri hizinda ileri hareket eder
-        _flyTime -= Time.deltaTime;
-        
+
+        _flyTime -= Time.deltaTime;        
         if (_flyTime <= 0)
         {
-            rb.useGravity = true;
+            rb.useGravity = true;            
         }
+    }
+    IEnumerator WingsOpenClose()
+    {
+        WingsOpen();
+        wings.eulerAngles=new Vector3(0, 0, 0); // Kanatlarin acisi acildiginda 0 derece olur
+        yield return new WaitForSeconds(_flyTime+0.8f);
+        WingsClose();
+        wings.eulerAngles = new Vector3(-90, 0, 0); // Kanatlarin acisi kapandiginda -90 derece olur
     }
     private void OnTriggerEnter(Collider other)
     {
@@ -118,7 +187,8 @@ public class PlayerController : MonoBehaviour
             _isGround = false;
             _isFly = true;
             _isMove = false;
-            rb.useGravity = false;           
+            rb.useGravity = false;
+            StartCoroutine(nameof(WingsOpenClose)); // Kanatları ac ve kapa
         }
     }
     private void OnCollisionEnter(Collision collision)
