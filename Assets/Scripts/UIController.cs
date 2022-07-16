@@ -24,6 +24,7 @@ public class UIController : MonoBehaviour
     public TextMeshProUGUI TotalCoinText;
     [Header("GamePlayPanelText Controller")]
     public TextMeshProUGUI GamePlayCoinText;
+    public TextMeshPro CollectedWingsText;
     [Header("WinPanelText Controller")]
     public TextMeshProUGUI WinCoinText;
     private void Awake()

@@ -190,6 +190,10 @@ public class PlayerController : MonoBehaviour
             rb.useGravity = false;
             StartCoroutine(nameof(WingsOpenClose)); // Kanatları ac ve kapa
         }
+        if (other.CompareTag("Collect"))
+        {
+            GameManager.gamemanagerInstance.WingsAdd(other.gameObject);
+        }
     }
     private void OnCollisionEnter(Collision collision)
     {
