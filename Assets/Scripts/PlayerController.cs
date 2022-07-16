@@ -16,7 +16,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private bool _isMove;   // Zıplama aktif mi
     [SerializeField] private bool _isGround;   // Zıplama aktif mi
     [SerializeField] private bool _isFly;   // Zıplama aktif mi
-    [SerializeField] private float _flyTime;  // Kalkan süresi
+    public float _flyTime;  // Kalkan süresi
     [Space]
     [Header("Collected Controller")]
     [SerializeField] Transform wings;
@@ -177,6 +177,16 @@ public class PlayerController : MonoBehaviour
         yield return new WaitForSeconds(_flyTime+0.8f);
         WingsClose();
         wings.eulerAngles = new Vector3(-90, 0, 0); // Kanatlarin acisi kapandiginda -90 derece olur
+        StopCoroutine(nameof(WingsSubcartCoroutine));   // Kanat çıkarmayı durdur
+    }
+    IEnumerator WingsSubcartCoroutine()
+    {
+        while (true)
+        {            
+            // her 1 sniyede bir kanat çıkar
+            GameManager.gamemanagerInstance.WingsSubtract();
+            yield return new WaitForSeconds(1);
+        }        
     }
     private void OnTriggerEnter(Collider other)
     {
@@ -189,6 +199,7 @@ public class PlayerController : MonoBehaviour
             _isMove = false;
             rb.useGravity = false;
             StartCoroutine(nameof(WingsOpenClose)); // Kanatları ac ve kapa
+            StartCoroutine(nameof(WingsSubcartCoroutine));
         }
         if (other.CompareTag("Collect"))
         {
@@ -204,6 +215,7 @@ public class PlayerController : MonoBehaviour
             _isGround = true;
             _isFly = false;
             //_flyTime = 3f;
+            
         }
     }
 }
