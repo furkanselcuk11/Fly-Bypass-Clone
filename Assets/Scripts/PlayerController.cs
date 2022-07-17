@@ -12,13 +12,14 @@ public class PlayerController : MonoBehaviour
     [Space]
     [Header("Player Controller")]
     [SerializeField] private float _speed = 10f;    // Karaker hizi
-    [SerializeField] private float _horizontalspeed = 5f; // Player yön hareket hýzý
-    [SerializeField] private float _flySpeed = 100f;   // Karakter zıplama gucu 
-    [SerializeField] private float _defaultSwipe = 4f;    // Player default kaydýrma mesafesi
-    [SerializeField] private bool _isMove;   // Zıplama aktif mi
-    [SerializeField] private bool _isGround;   // Zıplama aktif mi
-    [SerializeField] private bool _isFly;   // Zıplama aktif mi
-    public float flyTime;  // Kalkan süresi
+    [SerializeField] private float _horizontalspeed = 5f; // Player yön hareket hizi
+    [SerializeField] private float _flySpeed = 100f;   // Karakter ucma hizi
+    [SerializeField] private float _defaultSwipe = 1.8f;    // Player default kaydirma mesafesi
+    [SerializeField] private bool _isMove;   // Hareket aktif mi
+    [SerializeField] private bool _isGround;   // Zemine temas etti mi
+    [SerializeField] private bool _isFly;   // Ucma aktif mi
+    public float flyTime;  // Ucma süresi
+    [SerializeField] private ParticleSystem _flyEffect;
     [Space]
     [Header("Collected Controller")]
     [SerializeField] Transform wings;
@@ -30,7 +31,6 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         _isFly = false;
         _isGround = true;
-        //flyTime=characterType.flyTime;
         anim = GetComponent<Animator>();
     }
     void Update()
@@ -104,7 +104,7 @@ public class PlayerController : MonoBehaviour
     }
     void Fly()
     {
-        //flyEffect.Play(); // Ucarken Flying efekti calisir  
+        //_flyEffect.Play(); // Ucarken Flying efekti calisir  
         transform.position = Vector3.Lerp(transform.position, new Vector3(transform.position.x, 3f, transform.position.z), 1f * Time.fixedDeltaTime);
         transform.Translate(0, 0, _flySpeed * Time.fixedDeltaTime); // Karakter speed degeri hizinda ileri hareket eder
 
@@ -201,6 +201,7 @@ public class PlayerController : MonoBehaviour
             _isFly = true;
             _isMove = false;
             rb.useGravity = false;
+            _flyEffect.Play(); // Ucarken Flying efekti calisir
             StartCoroutine(nameof(WingsOpenClose)); // Kanatları ac ve kapa
             StartCoroutine(nameof(WingsSubcartCoroutine));
         }
@@ -217,6 +218,7 @@ public class PlayerController : MonoBehaviour
             GameManager.gamemanagerInstance.isFinish = false;
             _isGround = true;
             _isFly = false;
+            _flyEffect.Stop(); // Ucarken Flying efekti durdur
             //_flyTime = 3f;
             
         }
