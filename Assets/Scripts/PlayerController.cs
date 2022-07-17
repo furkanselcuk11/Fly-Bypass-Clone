@@ -20,6 +20,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private bool _isFly;   // Ucma aktif mi
     public float flyTime;  // Ucma süresi
     [SerializeField] private ParticleSystem _flyEffect;
+    [SerializeField] private ParticleSystem _finishEffect;
     [Space]
     [Header("Collected Controller")]
     [SerializeField] Transform wings;
@@ -187,7 +188,7 @@ public class PlayerController : MonoBehaviour
         {            
             // her 1 sniyede bir kanat çıkar
             GameManager.gamemanagerInstance.WingsSubtract();
-            yield return new WaitForSeconds(1);
+            yield return new WaitForSeconds(0.1f);
         }        
     }
     private void OnTriggerEnter(Collider other)
@@ -202,11 +203,14 @@ public class PlayerController : MonoBehaviour
             _isMove = false;
             rb.useGravity = false;
             _flyEffect.Play(); // Ucarken Flying efekti calisir
+            _finishEffect.Play(); // Ucarken Finish efekti calisir
             StartCoroutine(nameof(WingsOpenClose)); // Kanatları ac ve kapa
             StartCoroutine(nameof(WingsSubcartCoroutine));
+            AudioController.audioControllerInstance.Play("FinishSound");
         }
         if (other.CompareTag("Collect"))
         {
+            // Eger yerde toplancak kanata temas edilmis ise
             GameManager.gamemanagerInstance.WingsAdd(other.gameObject);
         }
     }
@@ -214,13 +218,11 @@ public class PlayerController : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Ground"))
         {
-            Debug.Log("Ground");
             GameManager.gamemanagerInstance.isFinish = false;
             _isGround = true;
             _isFly = false;
             _flyEffect.Stop(); // Ucarken Flying efekti durdur
-            //_flyTime = 3f;
-            
+            //_flyTime = 3f;            
         }
     }
 }

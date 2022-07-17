@@ -15,6 +15,7 @@ public class GameManager : MonoBehaviour
     public bool isFinish;   // Finish alanına girdimi
     public int collectedWingsCount = 0;
     public int wingsValue = 0;
+    [SerializeField] private GameObject wingPrefab;
     private void Awake()
     {
         if (gamemanagerInstance == null)
@@ -48,6 +49,18 @@ public class GameManager : MonoBehaviour
         //scoreType.totalCoin+=scoreType.currentCoin++;
         //UIController.uicontrollerInstance.GamePlayCoinText.text = scoreType.totalCoin.ToString();
         // Coin ekler ve text gunceller
+    }
+    public void CharacterWings()
+    {
+        // Baslangicda tüm kanatlari pasif yap
+        for (int i = 0; i < player.GetComponent<PlayerController>().CollectedLetfWing.Count; i++)
+        {
+            player.GetComponent<PlayerController>().CollectedLetfWing.ElementAt(i).gameObject.SetActive(false);
+        }
+        for (int i = 0; i < player.GetComponent<PlayerController>().CollectedRigthWing.Count; i++)
+        {
+            player.GetComponent<PlayerController>().CollectedRigthWing.ElementAt(i).gameObject.SetActive(false);
+        }
     }
     void WingsValueCalculate()
     {
@@ -99,25 +112,29 @@ public class GameManager : MonoBehaviour
     public void WingsAdd(GameObject obj)
     {  
         // Fonksiyon her çalıştığında bir adet kanat aktif hale gelir
-        collectedWingsCount+=10;  // Toplanan kanat sayısını arttır
+        collectedWingsCount+=3;  // Toplanan kanat sayısını arttır
         UIController.uicontrollerInstance.CollectedWingsText.text = collectedWingsCount.ToString(); // Toplanan kanat sayılarını karakter üzerinde göster
         StartCoroutine(WingsIsActive(obj)); // Toplanan objeyi pasif hale getir
         WingsValueCalculate();  // Kaç kanadın aktif olacağı sayı dönderir
-        player.GetComponent<PlayerController>().CollectedLetfWing.ElementAt(wingsValue).gameObject.SetActive(true);
-        player.GetComponent<PlayerController>().CollectedRigthWing.ElementAt(wingsValue).gameObject.SetActive(true);
+        player.GetComponent<PlayerController>().CollectedLetfWing.ElementAt(wingsValue).gameObject.SetActive(true); // wingsValue degerine sahip kanat aktif hale gelir
+        player.GetComponent<PlayerController>().CollectedRigthWing.ElementAt(wingsValue).gameObject.SetActive(true);   // wingsValue degerine sahip kanat aktif hale gelir
+        AudioController.audioControllerInstance.Play("WingsSound");
     }
     public void WingsSubtract()
     {
         // Fonksiyon her çalıştığında bir adet kanat pasif hale gelir
-        collectedWingsCount -= 10;  // Toplanan kanat sayısını arttır
+        collectedWingsCount -= 1;  // Toplanan kanat sayısını arttır
         if (collectedWingsCount <= 0)
         {
             collectedWingsCount = 0;
         }
         UIController.uicontrollerInstance.CollectedWingsText.text = collectedWingsCount.ToString(); // Toplanan kanat sayılarını karakter üzerinde göster
         WingsValueCalculate(); // Kaç kanadın aktif olacağı sayı dönderir
-        player.GetComponent<PlayerController>().CollectedLetfWing.ElementAt(wingsValue+1).gameObject.SetActive(false);
-        player.GetComponent<PlayerController>().CollectedRigthWing.ElementAt(wingsValue+1).gameObject.SetActive(false);
+        FailWings(
+            player.GetComponent<PlayerController>().CollectedLetfWing.ElementAt(wingsValue + 1).gameObject.transform, 
+            player.GetComponent<PlayerController>().CollectedRigthWing.ElementAt(wingsValue + 1).gameObject.transform); // Dusen kanatların pozisyonları verilir
+        player.GetComponent<PlayerController>().CollectedLetfWing.ElementAt(wingsValue+1).gameObject.SetActive(false);  // wingsValue degerine sahip kanat pasif hale gelir
+        player.GetComponent<PlayerController>().CollectedRigthWing.ElementAt(wingsValue+1).gameObject.SetActive(false); // wingsValue degerine sahip kanat pasif hale gelir
     }
     IEnumerator WingsIsActive(GameObject obj)
     {
@@ -125,17 +142,15 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(2);
         obj.SetActive(true);    // Toplanan kanadı 2 saniye sonra aktif hale getir
     }
-    public void CharacterWings()
+    void FailWings(Transform Left,Transform Right)
     {
-        // Baslangicda tüm kanatlari pasif yap
-        for (int i = 0; i < player.GetComponent<PlayerController>().CollectedLetfWing.Count; i++)
-        {
-            player.GetComponent<PlayerController>().CollectedLetfWing.ElementAt(i).gameObject.SetActive(false);
-        }
-        for (int i = 0; i < player.GetComponent<PlayerController>().CollectedRigthWing.Count; i++)
-        {
-            player.GetComponent<PlayerController>().CollectedRigthWing.ElementAt(i).gameObject.SetActive(false);
-        }
+        // Her kanat ciktiginda kanat yere duser
+        GameObject LeftWing = Instantiate(wingPrefab, Left.position, Quaternion.identity);  // Sol kanadın dusecegi posizyonda kanat yarat
+        GameObject RightWing = Instantiate(wingPrefab, Right.position, Quaternion.identity);// Sag kanadın dusecegi posizyonda kanat yarat
+        LeftWing.AddComponent<Rigidbody>().useGravity = true;
+        RightWing.AddComponent<Rigidbody>().useGravity = true;
+        Destroy(LeftWing, 1);
+        Destroy(RightWing, 1);
     }
     public void Finish()
     {
