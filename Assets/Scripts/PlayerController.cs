@@ -12,11 +12,13 @@ public class PlayerController : MonoBehaviour
     [Space]
     [Header("Player Controller")]
     [SerializeField] private float _speed = 10f;    // Karaker hizi
+    [SerializeField] private float _horizontalspeed = 5f; // Player yön hareket hýzý
     [SerializeField] private float _flySpeed = 100f;   // Karakter zıplama gucu 
+    [SerializeField] private float _defaultSwipe = 4f;    // Player default kaydýrma mesafesi
     [SerializeField] private bool _isMove;   // Zıplama aktif mi
     [SerializeField] private bool _isGround;   // Zıplama aktif mi
     [SerializeField] private bool _isFly;   // Zıplama aktif mi
-    public float _flyTime;  // Kalkan süresi
+    public float flyTime;  // Kalkan süresi
     [Space]
     [Header("Collected Controller")]
     [SerializeField] Transform wings;
@@ -33,46 +35,25 @@ public class PlayerController : MonoBehaviour
     }
     void Update()
     {
-        if (!GameManager.gamemanagerInstance.isFinish)
-        {
-            if (Input.GetMouseButtonDown(0))
-            {
-                // Ekrana tıklandığında            
-                TapToStart();
-            }
-            if (Input.GetMouseButton(0) && GameManager.gamemanagerInstance.gameStart && _isGround)
-            {
-                // Ekrana basılı tutulduğunda
-                _isMove = true; // Running aktif olur
-                //anim.SetBool("Running", true);
-            }
-            if (Input.GetMouseButtonUp(0))
-            {
-                // Ekrana dokunma bırakıldığında
-                _isMove = false; // Running pasif olur 
-                //anim.SetBool("Running", false);
-            }
-        }
         CharacterAnim();
     }
     private void FixedUpdate()
     {
-        if (GameManager.gamemanagerInstance.gameStart)
+        if (GameManager.gamemanagerInstance.gameStart & !GameManager.gamemanagerInstance.isFinish & _isGround)
         {
-            if (!GameManager.gamemanagerInstance.isFinish && _isMove)
-            {
-                Move();
-                // eger gameStart , isRunning true ve isFinish false ise (oyun baslamıs) hareker et
-            }
-            else if (!GameManager.gamemanagerInstance.isFinish && !_isMove)
-            {
-                rb.velocity = Vector3.zero; // sabit kal
-            }
-            if (GameManager.gamemanagerInstance.isFinish && _isFly)
-            {
-                Fly();
-                //eger gameStart true, _isFly true ve isFinish true ise (oyun baslamıs) uc
-            }
+            // Eðer StartGame ,_isGround true ve isFinish false ise hareket et
+            transform.Translate(0, 0, _speed * Time.fixedDeltaTime); // Karakter speed deðeri hýzýdna ileri hareket eder
+            _isMove = true; // Running aktif olur
+            MoveInput();    // Player hareket kontrolü çalýþtýr
+        }
+        else
+        {
+            // Eðer StartGame False ise  hareket etmez
+            _isMove = false; // Running pasif olur 
+        }
+        if(GameManager.gamemanagerInstance.isFinish && _isFly)
+        {           
+            Fly();
         }
     }
     void CharacterAnim()
@@ -94,15 +75,56 @@ public class PlayerController : MonoBehaviour
             anim.SetBool("Flying", false);
         }
     }
+    void MoveInput()
+    {
+        #region Mobile Controller 4 Direction
+
+        float moveX = transform.position.x; // Player objesinin x pozisyonun de?erini al?r      
+        float moveZ = transform.position.z; // Player objesinin z pozisyonun de?erini al?r           
+
+        if (Input.GetKey(KeyCode.LeftArrow) || MobileInput.instance.swipeLeft)
+        {   // Eðer klavyede sol ok tuþuna basýldýysa yada "MobileInput" scriptinin swipeLeft deðeri True ise  Sola hareket gider
+            moveX = Mathf.Clamp(moveX - 1 * _horizontalspeed * Time.fixedDeltaTime, -_defaultSwipe, _defaultSwipe);    // Pozisyon sýnýrlandýrýlmasý koyulacaksa
+            // Player objesinin x (sol) pozisyonundaki gideceði min-max sýnýrý belirler
+        }
+        else if (Input.GetKey(KeyCode.RightArrow) || MobileInput.instance.swipeRight)
+        {   // Eðer klavyede sað ok tuþuna basýldýysa yada "MobileInput" scriptinin swipeRight deðeri True ise Saða hareket gider   
+            moveX = Mathf.Clamp(moveX + 1 * _horizontalspeed * Time.fixedDeltaTime, -_defaultSwipe, _defaultSwipe);    // Pozisyon sýnýrlandýrýlmasý koyulacaksa
+            // Player objesinin x (sað) pozisyonundaki gideceði min-max sýnýrý belirler
+        }
+        else
+        {
+            rb.velocity = Vector3.zero; // E?er hareket edilmediyse Player objesi sabit kals?n
+        }
+
+        transform.position = new Vector3(moveX, transform.position.y, moveZ);
+        // Player objesinin pozisyonu moveX deðerine göre x ekseninde, moveZ deðerine göre z ekseninde hareket eder ve y ekseninde sabit kalýr  
+
+        #endregion
+    }
+    void Fly()
+    {
+        //flyEffect.Play(); // Ucarken Flying efekti calisir  
+        transform.position = Vector3.Lerp(transform.position, new Vector3(transform.position.x, 3f, transform.position.z), 1f * Time.fixedDeltaTime);
+        transform.Translate(0, 0, _flySpeed * Time.fixedDeltaTime); // Karakter speed degeri hizinda ileri hareket eder
+
+        flyTime -= Time.deltaTime; // Karakterin uçma süresi toplandığı kanat sayısına eşit olup zaman göre azalacaktır
+        if (flyTime <= 0)
+        {
+            // 0 olduğu zaman yer çekimi aktif olup yere düşecektir
+            rb.useGravity = true;
+        }
+    }
     void WingsOpen()
     {
-        Debug.Log("wingOpen");
+        // Kanat Açma
         if (CollectedLetfWing.Count > 1)
         {
             for (int i = 0; i < CollectedLetfWing.Count; i++)
             {
+                // Sol kanat
                 var firstItem = CollectedLetfWing.ElementAt(i);
-                // Stack (Toplama) iþlemi sonrasý toplanan objelerin  sýralý þekilde gidiþini ve üstüne eklemesini ayarlar
+                // Stack (Toplama) islemi sonrasi toplanan objelerin  sirali sekilde gidisini ve üstüne eklemesini ayarlar
                 firstItem.position = new Vector3(Mathf.Lerp(firstItem.position.x, firstItem.position.x - (i * diffBetweenItems), 1f),
                      firstItem.position.y,
                     firstItem.position.z);
@@ -113,8 +135,9 @@ public class PlayerController : MonoBehaviour
         {
             for (int i = 0; i < CollectedRigthWing.Count; i++)
             {
+                // Sağ kanat
                 var firstItem = CollectedRigthWing.ElementAt(i);
-                // Stack (Toplama) iþlemi sonrasý toplanan objelerin  sýralý þekilde gidiþini ve üstüne eklemesini ayarlar
+                // Stack (Toplama) islemi sonrasi toplanan objelerin  sirali sekilde gidisini ve üstüne eklemesini ayarlar
                 firstItem.position = new Vector3(Mathf.Lerp(firstItem.position.x, firstItem.position.x + (i * diffBetweenItems), 1f),
                      firstItem.position.y,
                     firstItem.position.z);
@@ -123,13 +146,13 @@ public class PlayerController : MonoBehaviour
     }
     public void WingsClose()
     {
-        Debug.Log("wingClose");
+        // Kanat kapatma
         if (CollectedLetfWing.Count > 1)
         {
             for (int i = 0; i < CollectedLetfWing.Count; i++)
             {
                 var firstItem = CollectedLetfWing.ElementAt(i);
-                // Stack (Toplama) iþlemi sonrasý toplanan objelerin  sýralý þekilde gidiþini ve üstüne eklemesini ayarlar
+                // Cikarma islemi sonrasi toplanan objelerin  sirali sekilde gidisini ve en ustten cikarmasini ayarlar
                 firstItem.position = new Vector3(Mathf.Lerp(firstItem.position.x, firstItem.position.x + (i * diffBetweenItems), 1f),
                      firstItem.position.y,
                     firstItem.position.z);
@@ -141,42 +164,21 @@ public class PlayerController : MonoBehaviour
             for (int i = 0; i < CollectedRigthWing.Count; i++)
             {
                 var firstItem = CollectedRigthWing.ElementAt(i);
-                // Stack (Toplama) iþlemi sonrasý toplanan objelerin  sýralý þekilde gidiþini ve üstüne eklemesini ayarlar
+                // Cikarma islemi sonrasi toplanan objelerin  sirali sekilde gidisini ve en ustten cikarmasini ayarlar
                 firstItem.position = new Vector3(Mathf.Lerp(firstItem.position.x, firstItem.position.x - (i * diffBetweenItems), 1f),
                      firstItem.position.y,
                     firstItem.position.z);
             }
         }
-    }
-    public void TapToStart()
-    {
-        // oyunu baslatmak icin ekrana tıklanır     
-        GameManager.gamemanagerInstance.gameStart = true;   // gameStart aktif olur
-        UIController.uicontrollerInstance.GamePlayActive(); // GamePlay alanındaki textler akif olur
-    }
-    void Move()
-    {
-        transform.Translate(0, 0, _speed * Time.fixedDeltaTime); // Karakter speed degeri hizinda ileri hareket eder
-    }
-    void Fly()
-    {
-        //flyEffect.Play(); // Ucarken Flying efekti calisir  
-        transform.position = Vector3.Lerp(transform.position, new Vector3(transform.position.x, 3f, transform.position.z), 1f*Time.fixedDeltaTime);
-        transform.Translate(0, 0, _flySpeed * Time.fixedDeltaTime); // Karakter speed degeri hizinda ileri hareket eder
-
-        _flyTime -= Time.deltaTime;        
-        if (_flyTime <= 0)
-        {
-            rb.useGravity = true;            
-        }
-    }
+    }   
+    
     IEnumerator WingsOpenClose()
     {
-        WingsOpen();
-        wings.eulerAngles=new Vector3(0, 0, 0); // Kanatlarin acisi acildiginda 0 derece olur
-        yield return new WaitForSeconds(_flyTime+0.8f);
-        WingsClose();
-        wings.eulerAngles = new Vector3(-90, 0, 0); // Kanatlarin acisi kapandiginda -90 derece olur
+        WingsOpen();    // Kanat ac
+        wings.eulerAngles=new Vector3(0, 0, 0); // Kanatlarin acisini acildiginda 0 dereceye ayarlar
+        yield return new WaitForSeconds(flyTime + 0.8f);
+        WingsClose();   // Kanat kapat (flyTime suresi bittiginde)
+        wings.eulerAngles = new Vector3(-90, 0, 0); // Kanatlarin acisini kapandiginda -90 dereceye ayarlar
         StopCoroutine(nameof(WingsSubcartCoroutine));   // Kanat çıkarmayı durdur
     }
     IEnumerator WingsSubcartCoroutine()
@@ -195,6 +197,7 @@ public class PlayerController : MonoBehaviour
             // Finish cizgisine  girmis ise
             GameManager.gamemanagerInstance.isFinish = true;
             _isGround = false;
+            flyTime = (float)GameManager.gamemanagerInstance.wingsValue;   // Karakterin uçma süresi toplandığı kanat sayısına eşit olacak
             _isFly = true;
             _isMove = false;
             rb.useGravity = false;
