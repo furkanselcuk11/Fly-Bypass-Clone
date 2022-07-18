@@ -188,7 +188,7 @@ public class PlayerController : MonoBehaviour
         {            
             // her 1 sniyede bir kanat çıkar
             GameManager.gamemanagerInstance.WingsSubtract();
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(0.3f);
         }        
     }
     private void OnTriggerEnter(Collider other)
@@ -198,14 +198,14 @@ public class PlayerController : MonoBehaviour
             // Finish cizgisine  girmis ise
             GameManager.gamemanagerInstance.isFinish = true;
             _isGround = false;
-            flyTime = (float)GameManager.gamemanagerInstance.wingsValue;   // Karakterin uçma süresi toplandığı kanat sayısına eşit olacak
+            //flyTime = (float)GameManager.gamemanagerInstance.wingsValue;   // Karakterin uçma süresi toplandığı kanat sayısına eşit olacak
             _isFly = true;
             _isMove = false;
             rb.useGravity = false;
             _flyEffect.Play(); // Ucarken Flying efekti calisir
             _finishEffect.Play(); // Ucarken Finish efekti calisir
-            StartCoroutine(nameof(WingsOpenClose)); // Kanatları ac ve kapa
-            StartCoroutine(nameof(WingsSubcartCoroutine));
+            //StartCoroutine(nameof(WingsOpenClose)); // Kanatları ac ve kapa
+            //StartCoroutine(nameof(WingsSubcartCoroutine));
             AudioController.audioControllerInstance.Play("FinishSound");
         }
         if (other.CompareTag("Collect"))
@@ -221,8 +221,49 @@ public class PlayerController : MonoBehaviour
             GameManager.gamemanagerInstance.isFinish = false;
             _isGround = true;
             _isFly = false;
-            _flyEffect.Stop(); // Ucarken Flying efekti durdur
-            //_flyTime = 3f;            
+            _flyEffect.Stop(); // Ucarken Flying efekti durdur       
+        }
+        if (collision.gameObject.CompareTag("Award"))
+        {
+            // Finish alaninda uctuktan hangi odul rengine ulastigini ayarlar
+            GameManager.gamemanagerInstance.isFinish = false;
+            _isFly = false;
+            _flyEffect.Stop(); // Ucarken Flying efekti durdur 
+            int AwardName = int.Parse(collision.gameObject.name);
+            switch (AwardName)
+            {
+                case 1:
+                    GameManager.gamemanagerInstance.AddCoin(AwardName);
+                    break;
+                case 2:
+                    GameManager.gamemanagerInstance.AddCoin(AwardName);
+                    break;
+                case 3:
+                    GameManager.gamemanagerInstance.AddCoin(AwardName);
+                    break;
+                case 4:
+                    GameManager.gamemanagerInstance.AddCoin(AwardName);
+                    break;
+                case 5:
+                    GameManager.gamemanagerInstance.AddCoin(AwardName);
+                    break;
+                case 6:
+                    GameManager.gamemanagerInstance.AddCoin(AwardName); ;
+                    break;
+                case 7:
+                    GameManager.gamemanagerInstance.AddCoin(AwardName);
+                    break;
+                case 8:
+                    GameManager.gamemanagerInstance.AddCoin(AwardName);
+                    break;
+                case 9:
+                    GameManager.gamemanagerInstance.AddCoin(AwardName);
+                    break;
+                case 10:
+                    GameManager.gamemanagerInstance.AddCoin(AwardName);
+                    break;
+            }
+            UIController.uicontrollerInstance.WinPanelActive();
         }
     }
 }

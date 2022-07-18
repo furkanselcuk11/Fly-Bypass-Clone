@@ -33,22 +33,21 @@ public class GameManager : MonoBehaviour
     void StartTextReset()
     {
         // ana ekrandaki text yazıları gunceller
-        //scoreType.currentCoin = scoreType.minCoin;
-        //UIController.uicontrollerInstance.GamePlayGoldText.text = scoreType.minCoin.ToString();
+        //UIController.uicontrollerInstance.GamePlayGoldText.text = scoreType.totalCoin.ToString();
         UIController.uicontrollerInstance.CollectedWingsText.text = collectedWingsCount.ToString();
     }
     void Update()
     {
         
     }
-    public void AddCoin()
+    public void AddCoin(int value)
     {
         // Altın Ekler
         Debug.Log("Coin added");
-        //AudioController.audioControllerInstance.Play("CoinSound");  // Coin ses acar
-        //scoreType.totalCoin+=scoreType.currentCoin++;
-        //UIController.uicontrollerInstance.GamePlayCoinText.text = scoreType.totalCoin.ToString();
-        // Coin ekler ve text gunceller
+        int coinValue = collectedWingsCount * value; // Gelen value degerini ile oyun bitiminde toplanan kanat sayılarını carp toplamı altın olarak ekle
+        AudioController.audioControllerInstance.Play("CoinSound");  // Coin ses acar
+        //scoreType.totalCoin+=coinValue;
+        UIController.uicontrollerInstance.WinCoinText.text = coinValue.ToString(); // Coin ekler ve text gunceller
     }
     public void CharacterWings()
     {
@@ -123,7 +122,7 @@ public class GameManager : MonoBehaviour
     public void WingsSubtract()
     {
         // Fonksiyon her çalıştığında bir adet kanat pasif hale gelir
-        collectedWingsCount -= 1;  // Toplanan kanat sayısını arttır
+        collectedWingsCount -= 3;  // Toplanan kanat sayısını arttır
         if (collectedWingsCount <= 0)
         {
             collectedWingsCount = 0;
