@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    //[SerializeField] private CharacterSO characterType = null;    // Scriptable Objects eriþir 
+    [SerializeField] private ScoreSO scoreType = null;    // Scriptable Objects eriþir 
 
     private Rigidbody rb;
     private Animator anim;
@@ -198,14 +198,15 @@ public class PlayerController : MonoBehaviour
             // Finish cizgisine  girmis ise
             GameManager.gamemanagerInstance.isFinish = true;
             _isGround = false;
-            //flyTime = (float)GameManager.gamemanagerInstance.wingsValue;   // Karakterin uçma süresi toplandığı kanat sayısına eşit olacak
+            flyTime = (float)GameManager.gamemanagerInstance.wingsValue;   // Karakterin uçma süresi toplandığı kanat sayısına eşit olacak
             _isFly = true;
             _isMove = false;
             rb.useGravity = false;
             _flyEffect.Play(); // Ucarken Flying efekti calisir
             _finishEffect.Play(); // Ucarken Finish efekti calisir
-            //StartCoroutine(nameof(WingsOpenClose)); // Kanatları ac ve kapa
-            //StartCoroutine(nameof(WingsSubcartCoroutine));
+            scoreType.finishCollectedWings = GameManager.gamemanagerInstance.collectedWingsCount;
+            StartCoroutine(nameof(WingsOpenClose)); // Kanatları ac ve kapa
+            StartCoroutine(nameof(WingsSubcartCoroutine));
             AudioController.audioControllerInstance.Play("FinishSound");
         }
         if (other.CompareTag("Collect"))
@@ -262,8 +263,7 @@ public class PlayerController : MonoBehaviour
                 case 10:
                     GameManager.gamemanagerInstance.AddCoin(AwardName);
                     break;
-            }
-            UIController.uicontrollerInstance.WinPanelActive();
+            }            
         }
     }
 }

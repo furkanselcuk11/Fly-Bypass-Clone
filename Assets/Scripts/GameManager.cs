@@ -6,7 +6,7 @@ using System.Linq;
 
 public class GameManager : MonoBehaviour
 {
-    //[SerializeField] private ScoreSO scoreType = null;    // Scriptable Objects eriþir 
+    [SerializeField] private ScoreSO scoreType = null;    // Scriptable Objects eriþir 
 
     public static GameManager gamemanagerInstance;
 
@@ -27,13 +27,14 @@ public class GameManager : MonoBehaviour
     {
         gameStart = false;  // oyun yuklendiginde gameStart false olarak baslar
         isFinish = false; // oyun yuklendiginde isFinish false olarak baslar
+        scoreType.finishCollectedWings = 0;
         StartTextReset();   // ana ekrandaki text yazıları gunceller
         CharacterWings();
     }
     void StartTextReset()
     {
         // ana ekrandaki text yazıları gunceller
-        //UIController.uicontrollerInstance.GamePlayGoldText.text = scoreType.totalCoin.ToString();
+        UIController.uicontrollerInstance.GamePlayCoinText.text = scoreType.totalCoin.ToString();
         UIController.uicontrollerInstance.CollectedWingsText.text = collectedWingsCount.ToString();
     }
     void Update()
@@ -44,10 +45,16 @@ public class GameManager : MonoBehaviour
     {
         // Altın Ekler
         Debug.Log("Coin added");
-        int coinValue = collectedWingsCount * value; // Gelen value degerini ile oyun bitiminde toplanan kanat sayılarını carp toplamı altın olarak ekle
+        int coinValue = scoreType.finishCollectedWings * value; // Gelen value degerini ile oyun bitiminde toplanan kanat sayılarını carp toplamı altın olarak ekle
         AudioController.audioControllerInstance.Play("CoinSound");  // Coin ses acar
-        //scoreType.totalCoin+=coinValue;
+        scoreType.totalCoin+=coinValue;
         UIController.uicontrollerInstance.WinCoinText.text = coinValue.ToString(); // Coin ekler ve text gunceller
+        StartCoroutine(nameof(WinPanelOpen));
+    }
+    IEnumerator WinPanelOpen()
+    {
+        yield return new WaitForSeconds(2);
+        UIController.uicontrollerInstance.WinPanelActive();
     }
     public void CharacterWings()
     {

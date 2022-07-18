@@ -5,9 +5,8 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class UIController : MonoBehaviour
-{
-    //[SerializeField] private CharacterSO characterType = null;    // Scriptable Objects eriþir 
-    //[SerializeField] private ScoreSO scoreType = null;    // Scriptable Objects eriþir 
+{    
+    [SerializeField] private ScoreSO scoreType = null;    // Scriptable Objects eriþir 
 
     public static UIController uicontrollerInstance;
 
@@ -77,7 +76,7 @@ public class UIController : MonoBehaviour
     }
     public void StartPanelText()
     {
-        //TotalCoinText.text = scoreType.totalCoin.ToString();
+        TotalCoinText.text = scoreType.totalCoin.ToString();
     }
     public void GamePlayPanelText()
     {
